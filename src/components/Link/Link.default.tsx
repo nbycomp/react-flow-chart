@@ -1,16 +1,19 @@
 import * as React from 'react'
-import { generateCurvePath, IConfig, ILink, IOnLinkClick, IOnLinkMouseEnter, IOnLinkMouseLeave, IPosition } from '../../'
+import { generateCurvePath, generateRightAnglePath, generateSmartPath, IConfig, ILink, IOnLinkClick, IOnLinkMouseEnter, IOnLinkMouseLeave, IPort, IPosition } from '../../'
 
 export interface ILinkDefaultProps {
   config: IConfig
   link: ILink
   startPos: IPosition
   endPos: IPosition
+  fromPort: IPort
+  toPort?: IPort
   onLinkMouseEnter: IOnLinkMouseEnter
   onLinkMouseLeave: IOnLinkMouseLeave
   onLinkClick: IOnLinkClick
   isHovered: boolean
   isSelected: boolean
+  matrix?: number[][]
 }
 
 export const LinkDefault = ({
@@ -18,13 +21,21 @@ export const LinkDefault = ({
   link,
   startPos,
   endPos,
+  fromPort,
+  toPort,
   onLinkMouseEnter,
   onLinkMouseLeave,
   onLinkClick,
   isHovered,
   isSelected,
+  matrix,
 }: ILinkDefaultProps) => {
-  const points = generateCurvePath(startPos, endPos)
+
+  const points = config.smartRouting ?
+    !!toPort && !!matrix ? generateSmartPath(matrix, startPos, endPos, fromPort, toPort) : generateRightAnglePath(startPos, endPos)
+    : generateCurvePath(startPos, endPos)
+
+  const linkColor: string = (fromPort.properties && fromPort.properties.linkColor) || 'cornflowerblue'
 
   return (
     <svg style={{ overflow: 'visible', position: 'absolute', cursor: 'pointer', left: 0, right: 0 }}>
@@ -32,19 +43,19 @@ export const LinkDefault = ({
         r="4"
         cx={startPos.x}
         cy={startPos.y}
-        fill="cornflowerblue"
+        fill={linkColor}
       />
       {/* Main line */}
       <path
         d={points}
-        stroke="cornflowerblue"
+        stroke={linkColor}
         strokeWidth="3"
         fill="none"
       />
       {/* Thick line to make selection easier */}
       <path
         d={points}
-        stroke="cornflowerblue"
+        stroke={linkColor}
         strokeWidth="20"
         fill="none"
         strokeLinecap="round"
@@ -60,7 +71,7 @@ export const LinkDefault = ({
         r="4"
         cx={endPos.x}
         cy={endPos.y}
-        fill="cornflowerblue"
+        fill={linkColor}
       />
     </svg>
   )
